@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAI Painel do Vendedor</title>
+<style>
+:root{color-scheme:light;--bg:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;
+--border:rgba(11,11,11,.10);--s1:#2a78d6;--s2:#eb6834;--good:#006300;--crit:#d03b3b;--warn:#b07800;--accent:#2a78d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;
+--grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,.10);--s1:#3987e5;--s2:#d95926;--good:#0ca30c;--warn:#fab219;--accent:#3987e5}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--grid:#2c2c2a;--axis:#383835;
+--border:rgba(255,255,255,.10);--s1:#3987e5;--s2:#d95926;--good:#0ca30c;--warn:#fab219;--accent:#3987e5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:16px;max-width:1200px;margin:0 auto}
+header h1{font-size:20px;margin:0}header .sub{color:var(--ink2);font-size:13px}
+nav{display:flex;gap:4px;padding:0 16px;max-width:1200px;margin:0 auto;border-bottom:1px solid var(--border);overflow-x:auto}
+nav button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;color:var(--ink2);font:inherit;cursor:pointer;white-space:nowrap}
+nav button.on{color:var(--ink);border-color:var(--accent);font-weight:600}
+main{max-width:1200px;margin:0 auto;padding:16px}section.tab{display:none}section.tab.on{display:block}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+select,input,textarea,button.btn,a.btn{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+button.btn,a.btn{cursor:pointer;text-decoration:none;display:inline-block}button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px;margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.tile .l{color:var(--ink2);font-size:13px}.tile .v{font-size:22px;font-weight:600;white-space:nowrap}.tile .d{font-size:13px;color:var(--ink2)}
+.up{color:var(--good)}.down{color:var(--crit)}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}@media(max-width:800px){.grid2{grid-template-columns:1fr}}
+h2{font-size:16px;margin:0 0 12px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--grid);font-size:14px;vertical-align:top}
+th{color:var(--ink2);font-weight:500}.scroll{overflow-x:auto}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid var(--border);white-space:nowrap}
+.tag.crit{color:var(--crit);border-color:var(--crit)}.tag.warn{color:var(--warn);border-color:var(--warn)}
+.hbar{height:10px;border-radius:0 4px 4px 0;background:var(--s1)}
+.q{border-bottom:1px solid var(--grid);padding:12px 0}.q textarea{width:100%;min-height:60px;margin:6px 0}
+.muted{color:var(--ink2);font-size:13px}.empty{color:var(--ink2);padding:24px;text-align:center}
+.chart-box{position:relative;height:260px}.chart-box svg{width:100%;height:100%;overflow:visible}#daily{height:100%}
+.ln{fill:none;stroke:var(--s1);stroke-width:2}.gl{stroke:var(--grid)}.ax{stroke:var(--axis)}.tk{fill:var(--muted);font-size:11px}
+.cross{stroke:var(--axis);stroke-width:1}.dot{fill:var(--s1);stroke:var(--surface);stroke-width:2}
+[hidden]{display:none!important}
+#auth{max-width:380px;margin:10vh auto;padding:0 16px}#auth .card{display:flex;flex-direction:column;gap:10px}
+#auth input{width:100%}.link{background:none;border:0;color:var(--accent);cursor:pointer;font:inherit;padding:0}
+.err{color:var(--crit);font-size:14px;min-height:1em}.form-row{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-top:12px}
+.form-row label{display:flex;flex-direction:column;font-size:13px;color:var(--ink2);gap:4px}
+.who{font-size:13px;color:var(--ink2)}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="auth" hidden>
+  <h1 style="font-size:22px">MAI</h1>
+  <p class="muted">Gestão de vendas e inteligência de mercado para marketplaces.</p>
+  <form class="card" id="login-form">
+    <h2>Entrar</h2>
+    <input name="email" type="email" placeholder="E-mail" autocomplete="username" required>
+    <input name="password" type="password" placeholder="Senha" autocomplete="current-password" required>
+    <button class="btn primary" type="submit">Entrar</button>
+    <div class="err" id="login-err"></div>
+    <div class="muted">Sua empresa ainda não usa o MAI? <button class="link" type="button" id="show-register">Criar conta da empresa</button></div>
+  </form>
+  <form class="card" id="register-form" hidden>
+    <h2>Criar conta da empresa</h2>
+    <input name="org_name" placeholder="Nome da empresa ou loja" required>
+    <input name="name" placeholder="Seu nome" required>
+    <input name="email" type="email" placeholder="E-mail" required>
+    <input name="password" type="password" placeholder="Senha (mínimo 8 caracteres)" minlength="8" required>
+    <button class="btn primary" type="submit">Criar conta</button>
+    <div class="err" id="register-err"></div>
+    <div class="muted"><button class="link" type="button" id="show-login">Já tenho conta</button></div>
+  </form>
+</div>
+<div id="app" hidden>
+<header>
+  <div><h1 id="org-name">MAI</h1><div class="who" id="who"></div></div>
+  <div class="row" style="margin:0">
+    <label class="muted" for="seller">Loja</label><select id="seller"></select>
+    <label class="muted" for="account">Conta</label><select id="account"></select>
+    <label class="muted" for="period">Período</label>
+    <select id="period">
+      <option value="hoje">Hoje</option><option value="7d">7 dias</option><option value="15d">15 dias</option>
+      <option value="30d" selected>30 dias</option><option value="mes">Mês atual</option><option value="ano">Ano atual</option>
+    </select>
+    <button class="btn" id="sync">Sincronizar</button>
+    <button class="btn" id="logout">Sair</button>
+  </div>
+</header>
+<nav>
+  <button data-tab="vendas" class="on">Vendas</button>
+  <button data-tab="perguntas">Perguntas</button>
+  <button data-tab="estoque">Estoque</button>
+  <button data-tab="mercado">Análise de mercado</button>
+  <button data-tab="calc">Calculadora</button>
+  <button data-tab="anuncios">Raio-x de anúncios</button>
+  <button data-tab="pesquisa">Pesquisa de mercado</button>
+  <button data-tab="contas">Contas</button>
+  <button data-tab="equipe" class="mgr">Equipe</button>
+  <button data-tab="config" class="mgr">Configurações</button>
+</nav>
+<main>
+  <section class="tab on" id="vendas">
+    <div class="tiles" id="sales-tiles"></div>
+    <div class="grid2">
+      <div class="card"><h2>Faturamento por dia</h2><div class="chart-box"><div id="daily" role="img" aria-label="Faturamento por dia"></div><div id="tip" class="tip" hidden></div></div></div>
+      <div class="card"><h2>Faturamento por conta</h2><div id="by-mkt"></div></div>
+    </div>
+    <div class="card"><h2>5 produtos que mais venderam</h2><div class="scroll"><table id="top"></table></div></div>
+  </section>
+
+  <section class="tab" id="perguntas">
+    <div class="tiles" id="q-tiles"></div>
+    <div class="grid2">
+      <div class="card"><h2>Perguntas sem resposta</h2><div id="q-list"></div></div>
+      <div class="card"><h2>O que mais perguntam (30 dias)</h2><div id="q-topics"></div><h2 style="margin-top:16px">Anúncios com mais perguntas</h2><div id="q-products"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" id="estoque">
+    <div class="tiles" id="s-tiles"></div>
+    <div class="card"><div class="scroll"><table id="stock"></table></div></div>
+  </section>
+
+  <section class="tab" id="mercado">
+    <p class="muted">O agente pesquisa os concorrentes de cada produto e responde: preços praticados, Full ou Flex, palavras-chave mais buscadas, celular ou computador, motivos das avaliações ruins e melhor preço de venda. Cadastre custo e preço mínimo para que a recomendação respeite sua margem; os demais custos vêm do perfil da Calculadora.</p>
+    <div class="row"><label class="muted" for="modes">Comparar com concorrentes em</label>
+      <select id="modes"><option value="">Todas as modalidades</option><option value="full">Só Full</option><option value="flex">Só Flex</option><option value="full,flex">Full e Flex</option><option value="coleta">Só Coleta/Agência</option><option value="proprio">Só envio próprio</option></select></div>
+    <div class="card"><div class="scroll"><table id="products"></table></div></div>
+  </section>
+
+  <section class="tab" id="calc">
+    <p class="muted">Simule quanto sobra de cada venda depois de comissão, tarifa, frete, impostos, Mercado Ads e embalagem. Os campos do perfil começam com o padrão da loja; mude à vontade para simular e salve como padrão quando fizer sentido.</p>
+    <div class="grid2" style="grid-template-columns:1fr 1.3fr">
+      <form class="card" id="calc-form">
+        <h2>Produto e preço</h2>
+        <div class="form-row" style="margin-top:0">
+          <label style="flex:1 1 100%">Produto da loja (opcional)<select name="product_id" id="calc-product"><option value="">Simulação livre</option></select></label>
+          <label>Preço de venda (R$)<input name="price" type="number" step="0.01" min="0.01" required style="width:120px"></label>
+          <label>Custo do produto (R$)<input name="cost_price" type="number" step="0.01" min="0" required style="width:120px"></label>
+          <label>Peso (g)<input name="weight_g" type="number" min="0" style="width:90px"></label>
+          <label>Dimensões (AxLxC cm)<input name="dimensions_cm" placeholder="20x15x10" style="width:110px"></label>
+        </div>
+        <h2 style="margin-top:16px">Anúncio e envio</h2>
+        <div class="form-row" style="margin-top:0">
+          <label>Tipo de anúncio<select name="listing_type"><option value="gold_special">Clássico</option><option value="gold_pro">Premium</option></select></label>
+          <label>Envio<select name="shipping_mode"><option value="coleta">Coleta/Agência</option><option value="full">Full</option><option value="flex">Flex</option><option value="proprio">Envio próprio</option></select></label>
+          <label>Comissão % (vazio = do marketplace)<input name="commission_pct" type="number" step="0.1" style="width:90px"></label>
+          <label>Frete R$ (vazio = calcular)<input name="shipping_cost" type="number" step="0.01" style="width:90px"></label>
+        </div>
+        <h2 style="margin-top:16px">Perfil de custos da loja</h2>
+        <div class="form-row" style="margin-top:0">
+          <label>Impostos %<input name="tax_pct" type="number" step="0.1" style="width:80px"></label>
+          <label>Mercado Ads %<input name="ads_pct" type="number" step="0.1" style="width:80px"></label>
+          <label>Parcelamento %<input name="installment_pct" type="number" step="0.1" style="width:80px"></label>
+          <label>Outros %<input name="other_cost_pct" type="number" step="0.1" style="width:80px"></label>
+          <label>Embalagem R$<input name="packaging_cost" type="number" step="0.01" style="width:80px"></label>
+          <label>Outros R$/un.<input name="other_cost_fixed" type="number" step="0.01" style="width:80px"></label>
+          <label>Entrega Flex R$<input name="flex_cost" type="number" step="0.01" style="width:80px"></label>
+          <label>Armazenagem Full R$/un.<input name="full_storage_cost" type="number" step="0.01" style="width:80px"></label>
+          <label>Desconto de frete %<input name="shipping_discount_pct" type="number" step="1" style="width:80px"></label>
+          <label>Margem desejada %<input name="target_margin_pct" type="number" step="0.5" style="width:80px"></label>
+        </div>
+        <div class="form-row"><button class="btn primary" type="submit">Calcular</button><button class="btn mgr" type="button" id="calc-save">Salvar perfil como padrão da loja</button></div>
+        <div class="err" id="calc-err"></div>
+      </form>
+      <div id="calc-out"><div class="card empty">Preencha preço e custo para ver o resultado.</div></div>
+    </div>
+  </section>
+
+  <section class="tab" id="anuncios">
+    <form class="card row" id="ad-form" style="margin-bottom:16px">
+      <input name="item" placeholder="Cole o link ou o código do anúncio (MLB...)" required style="flex:1;min-width:240px">
+      <button class="btn primary" type="submit">Analisar anúncio</button>
+    </form>
+    <div id="ad-out"></div>
+    <div class="card" style="margin-top:16px"><h2>Anúncios monitorados</h2>
+      <p class="muted">O MAI tira uma foto diária de preço e vendidos de cada anúncio monitorado. Com duas ou mais fotos, vendas e faturamento passam de estimativa para cálculo.</p>
+      <div class="scroll"><table id="tracked"></table></div></div>
+  </section>
+
+  <section class="tab" id="pesquisa">
+    <form class="card row" id="research-form" style="margin-bottom:16px">
+      <input name="q" placeholder="Termo de busca (ex.: teclado mecânico sem fio)" required style="flex:1;min-width:240px">
+      <select name="modes"><option value="">Todas as modalidades</option><option value="full">Só Full</option><option value="flex">Só Flex</option><option value="full,flex">Full e Flex</option></select>
+      <button class="btn primary" type="submit">Pesquisar mercado</button>
+    </form>
+    <div id="research-out"></div>
+  </section>
+
+  <section class="tab" id="contas">
+    <p class="muted">Cada loja pode ter várias contas de marketplace, inclusive mais de uma conta no mesmo marketplace. As vendas, perguntas e estoques de todas aparecem juntos no painel, e o filtro "Conta" no topo mostra uma de cada vez.</p>
+    <div id="accounts"></div>
+    <div class="card mgr" style="margin-top:16px"><h2>Nova loja</h2>
+      <form class="form-row" id="seller-form"><label>Nome<input name="name" required></label><button class="btn" type="submit">Criar loja</button></form></div>
+  </section>
+
+  <section class="tab" id="equipe">
+    <div class="card"><h2>Usuários da empresa</h2><div class="scroll"><table id="users"></table></div>
+      <form class="form-row" id="user-form">
+        <label>Nome<input name="name" required></label><label>E-mail<input name="email" type="email" required></label>
+        <label>Senha inicial<input name="password" type="password" minlength="8" required></label>
+        <label>Papel<select name="role"><option value="analyst">Analista</option><option value="admin">Administrador</option></select></label>
+        <button class="btn primary" type="submit">Adicionar</button></form>
+      <div class="err" id="user-err"></div>
+      <p class="muted">Analista consulta painéis, roda análises e responde perguntas. Administrador também gerencia lojas, contas e usuários.</p>
+    </div>
+  </section>
+
+  <section class="tab" id="config">
+    <div class="card"><h2>Inteligência artificial (Gemini)</h2>
+      <p id="ai-status" class="muted"></p>
+      <form class="form-row" id="ai-form">
+        <label>Chave própria da API Gemini<input name="gemini_api_key" type="password" placeholder="Cole a chave do Google AI Studio" style="width:320px"></label>
+        <label><span>Usar IA</span><select name="ai_enabled"><option value="true">Sim</option><option value="false">Não</option></select></label>
+        <button class="btn primary" type="submit">Salvar</button>
+        <button class="btn" type="button" id="ai-remove">Remover chave própria</button>
+      </form>
+      <p class="muted">A IA classifica os motivos das avaliações ruins, sugere respostas às perguntas e escreve o resumo do relatório. Sem chave, o MAI usa regras próprias. A chave gratuita é criada em aistudio.google.com; na camada gratuita o Google pode usar o conteúdo enviado para melhorar seus serviços.</p>
+    </div>
+    <div class="card" style="margin-top:16px"><h2>Preço</h2>
+      <form class="form-row" id="margin-form"><label>Margem mínima sobre o preço (%)<input name="min_margin_pct" type="number" step="0.5" min="0" max="90"></label><button class="btn" type="submit">Salvar</button></form>
+    </div>
+  </section>
+</main>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const brl = v => v == null ? "-" : v.toLocaleString("pt-BR", {style: "currency", currency: "BRL"});
+const num = v => v == null ? "-" : v.toLocaleString("pt-BR");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const TOPICS = {garantia:"Garantia", frete_prazo:"Frete e prazo", compatibilidade:"Compatibilidade", estoque:"Estoque",
+  especificacao:"Especificações", nota_fiscal:"Nota fiscal", troca_devolucao:"Troca e devolução", preco_desconto:"Preço e desconto", outros:"Outros"};
+let seller = null, sellers = [], me = null, token = null;
+const store = {get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+               set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} }};
+const ROLE = {owner: "Dono", admin: "Administrador", analyst: "Analista"};
+const isMgr = () => me && ["owner", "admin"].includes(me.user.role);
+const accountQs = () => $("#account").value ? `&account_id=${$("#account").value}` : "";
+
+function lineChart(el, rows) {
+  const W = el.clientWidth || 600, H = 260, L = 64, R = 8, T = 8, B = 24;
+  const max = Math.max(1, ...rows.map(r => r.gross_revenue)) * 1.1;
+  const x = i => L + (W - L - R) * (rows.length < 2 ? .5 : i / (rows.length - 1));
+  const y = v => T + (H - T - B) * (1 - v / max);
+  const ticks = [0, .25, .5, .75, 1].map(f => max * f);
+  const step = Math.max(1, Math.ceil(rows.length / 8));
+  const lab = d => d.slice(8, 10) + "/" + d.slice(5, 7);
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    ${ticks.map(t => `<line class="gl" x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"/><text class="tk" x="${L - 6}" y="${y(t) + 4}" text-anchor="end">${brl(Math.round(t)).replace(",00", "")}</text>`).join("")}
+    <line class="ax" x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}"/>
+    ${rows.map((r, i) => i % step ? "" : `<text class="tk" x="${x(i)}" y="${H - 6}" text-anchor="middle">${lab(r.date)}</text>`).join("")}
+    <path class="ln" d="${rows.map((r, i) => (i ? "L" : "M") + x(i).toFixed(1) + "," + y(r.gross_revenue).toFixed(1)).join("")}"/>
+    <line class="cross" id="cross" y1="${T}" y2="${y(0)}" visibility="hidden"/><circle class="dot" id="hdot" r="5" visibility="hidden"/>
+    <rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent" id="hit"/></svg>`;
+  const tip = $("#tip"), svg = el.querySelector("svg");
+  el.querySelector("#hit").addEventListener("mousemove", e => {
+    const bx = svg.getBoundingClientRect(), px = (e.clientX - bx.left) * W / bx.width;
+    const i = Math.max(0, Math.min(rows.length - 1, Math.round((px - L) / (W - L - R) * (rows.length - 1))));
+    const r = rows[i];
+    for (const id of ["#cross", "#hdot"]) el.querySelector(id).setAttribute("visibility", "visible");
+    el.querySelector("#cross").setAttribute("x1", x(i)); el.querySelector("#cross").setAttribute("x2", x(i));
+    el.querySelector("#hdot").setAttribute("cx", x(i)); el.querySelector("#hdot").setAttribute("cy", y(r.gross_revenue));
+    tip.hidden = false; tip.innerHTML = `<strong>${lab(r.date)}</strong><br>${brl(r.gross_revenue)} · ${r.orders} pedidos`;
+    const left = x(i) * bx.width / W; tip.style.left = Math.min(left + 12, bx.width - 160) + "px"; tip.style.top = "8px";
+  });
+  el.querySelector("#hit").addEventListener("mouseleave", () => {
+    tip.hidden = true; for (const id of ["#cross", "#hdot"]) el.querySelector(id).setAttribute("visibility", "hidden");
+  });
+}
+
+async function api(path, opts = {}) {
+  const headers = {"Content-Type": "application/json", ...(token ? {Authorization: "Bearer " + token} : {})};
+  const r = await fetch(path, {...opts, headers});
+  if (r.status === 401 && token) { logout(); throw new Error("Sessão expirada. Entre novamente."); }
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+  return r.json();
+}
+function delta(p) {
+  if (p == null) return "";
+  return `<span class="${p >= 0 ? "up" : "down"}">${p >= 0 ? "▲" : "▼"} ${Math.abs(p).toLocaleString("pt-BR")}%</span>`;
+}
+const tile = (l, v, d = "") => `<div class="card tile"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`;
+const bars = (rows, label, value, fmt = num) => {
+  const max = Math.max(1, ...rows.map(value));
+  return rows.length ? `<table>${rows.map(r => `<tr><td>${esc(label(r))}</td><td style="width:30%"><div class="hbar" style="width:${100 * value(r) / max}%" title="${fmt(value(r))}"></div></td><td>${fmt(value(r))}</td></tr>`).join("")}</table>` : `<div class="empty">Sem dados</div>`;
+};
+
+async function loadDashboard() {
+  const d = await api(`/api/sellers/${seller._id}/dashboard?period=${$("#period").value}${accountQs()}`);
+  const s = d.sales, m = s.current_month;
+  $("#sales-tiles").innerHTML = [
+    tile("Faturamento bruto", brl(s.gross_revenue), delta(s.vs_previous_period_pct.gross_revenue) + " vs período anterior"),
+    tile("Faturamento líquido", brl(s.net_revenue), `Tarifas ${brl(s.marketplace_fees)} · Frete ${brl(s.shipping_costs)}`),
+    tile("Pedidos", num(s.orders), delta(s.vs_previous_period_pct.orders) + ` · ${s.cancellation_rate_pct.toLocaleString("pt-BR")}% cancelados`),
+    tile("Ticket médio", brl(s.average_ticket), `${num(s.units)} unidades`),
+    tile("Vendido no mês", brl(m.gross_revenue), delta(m.vs_same_point_last_month_pct) + ` vs mesmo ponto do mês passado (total ${brl(m.last_month_total)})`),
+  ].join("");
+  lineChart($("#daily"), s.daily_curve);
+  $("#by-mkt").innerHTML = bars(s.by_account, r => `${r.nickname} · ${r.marketplace} (${r.share_pct.toLocaleString("pt-BR")}%)`, r => r.gross_revenue, brl);
+  $("#top").innerHTML = `<thead><tr><th>Produto</th><th>Unidades</th><th>Faturamento</th></tr></thead><tbody>` +
+    s.top_products.map(p => `<tr><td>${esc(p.title)}</td><td>${num(p.units)}</td><td>${brl(p.gross_revenue)}</td></tr>`).join("") + "</tbody>";
+
+  const q = d.questions;
+  $("#q-tiles").innerHTML = [
+    tile("Sem resposta", num(q.unanswered_count)),
+    tile("Recebidas em 30 dias", num(q.received_last_30d)),
+    tile("Tempo médio de resposta", q.avg_response_minutes_30d == null ? "-" : (q.avg_response_minutes_30d >= 60 ? (q.avg_response_minutes_30d / 60).toFixed(1).replace(".", ",") + " h" : q.avg_response_minutes_30d + " min")),
+    tile("Respondidas em até 1 h", q.answered_within_1h_pct == null ? "-" : q.answered_within_1h_pct.toLocaleString("pt-BR") + "%"),
+  ].join("");
+  $("#q-list").innerHTML = q.unanswered.length ? q.unanswered.map(x => `
+    <div class="q" data-id="${x.id}">
+      <div><strong>${esc(x.question)}</strong> <span class="tag">${TOPICS[x.topic] || x.topic}</span></div>
+      <div class="muted">${esc(x.product_title || "")} · ${esc(x.account || x.marketplace)} · ${esc(x.buyer || "")} · esperando há ${x.waiting_hours >= 48 ? Math.round(x.waiting_hours / 24) + " dias" : x.waiting_hours.toLocaleString("pt-BR") + " h"}</div>
+      <textarea aria-label="Resposta">${esc(x.suggested_answer || "")}</textarea>${x.suggestion_method === "ia" ? '<div class="muted">Sugestão escrita pela IA. Revise antes de enviar.</div>' : ""}
+      <button class="btn primary" onclick="answer('${x.id}', this)">Enviar resposta</button>
+    </div>`).join("") : `<div class="empty">Nenhuma pergunta pendente.</div>`;
+  $("#q-topics").innerHTML = bars(q.top_topics, r => TOPICS[r.topic] || r.topic, r => r.count);
+  $("#q-products").innerHTML = bars(q.by_product, r => r.title || "Anúncio não vinculado", r => r.count);
+
+  const st = d.stock;
+  $("#s-tiles").innerHTML = [
+    tile("Unidades em estoque", num(st.total_units)), tile("Valor do estoque (custo)", brl(st.stock_value_at_cost)),
+    tile("Sem estoque", num(st.out_of_stock)), tile(`Repor (menos de ${st.alert_threshold_days} dias)`, num(st.restock_alerts)),
+  ].join("");
+  $("#stock").innerHTML = `<thead><tr><th>Produto</th><th>SKU</th><th>Contas</th><th>Estoque</th><th>Vendas 30 dias</th><th>Média/dia</th><th>Cobertura</th><th>Situação</th></tr></thead><tbody>` +
+    st.items.map(i => `<tr><td>${esc(i.title)}</td><td>${esc(i.sku)}</td><td>${esc((i.accounts || []).join(", "))}</td><td>${num(i.stock)}</td><td>${num(i.units_sold_30d)}</td><td>${i.avg_daily_sales.toLocaleString("pt-BR")}</td>
+      <td>${i.coverage_days == null ? "-" : i.coverage_days.toLocaleString("pt-BR") + " dias"}</td>
+      <td>${i.alert === "SEM_ESTOQUE" ? '<span class="tag crit">✕ Sem estoque</span>' : i.alert === "REPOR" ? '<span class="tag warn">! Repor</span>' : '<span class="tag">✓ OK</span>'}</td></tr>`).join("") + "</tbody>";
+}
+
+async function loadProducts() {
+  const rows = await api(`/api/sellers/${seller._id}/products`);
+  $("#products").innerHTML = `<thead><tr><th>Produto</th><th>Preço atual</th><th>Custo</th><th>Preço mínimo</th><th>Recomendado</th><th>Última análise</th><th></th></tr></thead><tbody>` +
+    rows.map(p => {
+      const prices = p.listings.map(l => `${brl(l.current_price)} <span class="muted">${esc(l.account_nickname || l.marketplace)}</span>`).join("<br>");
+      return `<tr data-id="${p._id}"><td>${esc(p.title)}<div class="muted">${esc(p.internal_sku)}${p.ean ? " · EAN " + esc(p.ean) : ""}</div></td>
+      <td style="white-space:nowrap">${prices}</td>
+      <td><input type="number" step="0.01" style="width:100px" value="${p.cost_price ?? ""}" data-f="cost_price" aria-label="Custo"></td>
+      <td><input type="number" step="0.01" style="width:100px" value="${p.min_selling_price ?? ""}" data-f="min_selling_price" aria-label="Preço mínimo"></td>
+      <td>${brl(p.recommended_price)}</td>
+      <td>${p.last_analysis ? new Date(p.last_analysis).toLocaleString("pt-BR") : "-"}</td>
+      <td style="white-space:nowrap"><button class="btn primary" onclick="analyze('${p._id}', this)">Analisar</button>
+        ${p.last_analysis ? `<a class="btn" href="/api/products/${p._id}/report.html?token=${token}" target="_blank">Relatório</a> <a class="btn" href="/api/products/${p._id}/report.xlsx?token=${token}">Excel</a>` : ""}</td></tr>`;
+    }).join("") + "</tbody>";
+  document.querySelectorAll("#products input").forEach(inp => inp.addEventListener("change", async e => {
+    const id = e.target.closest("tr").dataset.id, v = parseFloat(e.target.value);
+    if (!isNaN(v)) await api(`/api/products/${id}`, {method: "PATCH", body: JSON.stringify({[e.target.dataset.f]: v})});
+  }));
+}
+
+async function analyze(id, btn) {
+  btn.disabled = true; btn.textContent = "Analisando...";
+  const win = window.open("", "_blank");
+  const qs = new URLSearchParams();
+  if ($("#account").value) qs.set("account_id", $("#account").value);
+  if ($("#modes").value) qs.set("modes", $("#modes").value);
+  try { await api(`/api/products/${id}/analyze?${qs}`, {method: "POST"}); await loadProducts();
+        if (win) win.location = `/api/products/${id}/report.html?token=${token}`; }
+  catch (e) { if (win) win.close(); alert("Falha na análise: " + e.message); btn.disabled = false; btn.textContent = "Analisar"; }
+}
+async function answer(id, btn) {
+  const text = btn.parentElement.querySelector("textarea").value.trim();
+  if (!text) return;
+  btn.disabled = true;
+  try { await api(`/api/questions/${id}/answer`, {method: "POST", body: JSON.stringify({text})}); await loadDashboard(); }
+  catch (e) { alert(e.message); btn.disabled = false; }
+}
+
+async function loadAccounts() {
+  $("#accounts").innerHTML = sellers.map(sl => `
+    <div class="card" style="margin-bottom:16px"><h2>${esc(sl.name)}</h2>
+      ${sl.accounts.length ? `<table><thead><tr><th>Conta</th><th>Marketplace</th><th>Situação</th><th>Última sincronização</th><th></th></tr></thead><tbody>
+      ${sl.accounts.map(a => `<tr><td>${esc(a.nickname)}</td><td>${esc(a.marketplace)}</td>
+        <td>${a.status === "ACTIVE" ? '<span class="tag">✓ Conectada</span>' : '<span class="tag crit">✕ Desconectada</span>'}</td>
+        <td>${a.last_sync_at ? new Date(a.last_sync_at).toLocaleString("pt-BR") : "-"}</td>
+        <td style="white-space:nowrap">${a.status === "ACTIVE" ? `<button class="btn" onclick="syncAccount('${a._id}', this)">Sincronizar</button>
+          <button class="btn mgr" onclick="revoke('${a._id}')">Desconectar</button>` : ""}</td></tr>`).join("")}</tbody></table>`
+        : '<div class="empty">Nenhuma conta conectada.</div>'}
+      <div class="form-row mgr">
+        <button class="btn primary" onclick="connectML('${sl._id}')">Conectar conta do Mercado Livre</button>
+        <button class="btn" onclick="connectDemo('${sl._id}')">Adicionar conta de demonstração</button>
+      </div>
+    </div>`).join("");
+  applyRole();
+}
+async function connectML(sid) {
+  try { const r = await api(`/api/sellers/${sid}/accounts/mercadolivre/connect`, {method: "POST"}); location.href = r.url; }
+  catch (e) { alert(e.message); }
+}
+async function connectDemo(sid) {
+  const nickname = prompt("Nome da conta (ex.: Conta outlet)", "Conta de demonstração");
+  if (!nickname) return;
+  try { await api(`/api/sellers/${sid}/accounts/demo`, {method: "POST", body: JSON.stringify({nickname})}); await refreshAll(); }
+  catch (e) { alert(e.message); }
+}
+async function revoke(id) {
+  if (!confirm("Desconectar esta conta? O histórico continua, mas novas vendas e perguntas deixam de ser importadas.")) return;
+  await api(`/api/accounts/${id}`, {method: "DELETE"}); await refreshAll();
+}
+async function syncAccount(id, btn) {
+  btn.disabled = true;
+  try { await api(`/api/accounts/${id}/sync`, {method: "POST"}); await refreshAll(); } catch (e) { alert(e.message); btn.disabled = false; }
+}
+async function loadUsers() {
+  if (!isMgr()) return;
+  const users = await api("/api/users");
+  $("#users").innerHTML = `<thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Situação</th><th></th></tr></thead><tbody>` +
+    users.map(u => `<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${ROLE[u.role]}</td><td>${u.active ? "Ativo" : "Inativo"}</td>
+      <td>${u._id !== me.user._id && u.role !== "owner" ? `<button class="btn" onclick="toggleUser('${u._id}', ${!u.active})">${u.active ? "Desativar" : "Reativar"}</button>` : ""}</td></tr>`).join("") + "</tbody>";
+}
+async function toggleUser(id, active) { await api(`/api/users/${id}`, {method: "PATCH", body: JSON.stringify({active})}); loadUsers(); }
+async function loadSettings() {
+  const c = await api("/api/org/settings");
+  $("#ai-status").textContent = c.ai_available
+    ? (c.has_own_gemini_key ? "IA ativa com a chave própria da empresa." : "IA ativa com a chave do servidor.")
+    : "IA desligada: o MAI está usando regras próprias.";
+  $("#ai-form").ai_enabled.value = c.ai_enabled === false ? "false" : "true";
+  $("#margin-form").min_margin_pct.value = c.min_margin_pct ?? "";
+}
+function applyRole() { document.querySelectorAll(".mgr").forEach(el => el.hidden = !isMgr()); }
+
+function fillAccountSelect() {
+  const accs = (seller.accounts || []).filter(a => a.status === "ACTIVE");
+  const keep = $("#account").value;
+  $("#account").innerHTML = `<option value="">Todas</option>` + accs.map(a => `<option value="${a._id}">${esc(a.nickname)}</option>`).join("");
+  if (accs.some(a => a._id === keep)) $("#account").value = keep;
+}
+async function refreshAll() {
+  sellers = await api("/api/sellers");
+  const keep = seller && seller._id;
+  seller = sellers.find(x => x._id === keep) || sellers[0];
+  $("#seller").innerHTML = sellers.map(x => `<option value="${x._id}">${esc(x.name)}</option>`).join("");
+  $("#seller").value = seller._id;
+  fillAccountSelect();
+  await Promise.all([loadDashboard(), loadProducts(), loadAccounts(), loadUsers(), loadSettings(), loadCalc(), loadTracked()]);
+}
+function logout() { token = null; store.set("mai_token", null); me = null; $("#app").hidden = true; $("#auth").hidden = false; }
+async function start() {
+  me = await api("/api/me");
+  $("#auth").hidden = true; $("#app").hidden = false;
+  $("#org-name").textContent = me.organization.name;
+  $("#who").textContent = `${me.user.name} · ${ROLE[me.user.role]}`;
+  applyRole();
+  await refreshAll();
+  const flag = new URLSearchParams(location.search).get("integracao");
+  if (flag) { alert({ok: "Conta conectada. A importação de anúncios, pedidos e perguntas começou.", cancelada: "Autorização cancelada.", "conta-em-uso": "Esta conta de marketplace já está ligada a outra empresa."}[flag] || flag); history.replaceState(null, "", "/"); }
+}
+async function submitAuth(form, path, errEl) {
+  $(errEl).textContent = "";
+  const body = Object.fromEntries(new FormData(form));
+  try { const r = await api(path, {method: "POST", body: JSON.stringify(body)}); token = r.token; store.set("mai_token", token); await start(); }
+  catch (e) { $(errEl).textContent = e.message; }
+}
+
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("nav button, section.tab").forEach(x => x.classList.remove("on"));
+  b.classList.add("on"); $("#" + b.dataset.tab).classList.add("on");
+}));
+$("#period").addEventListener("change", loadDashboard);
+$("#account").addEventListener("change", loadDashboard);
+$("#seller").addEventListener("change", async () => { seller = sellers.find(x => x._id === $("#seller").value); fillAccountSelect(); await Promise.all([loadDashboard(), loadProducts(), loadCalc()]); });
+$("#sync").addEventListener("click", async () => { $("#sync").disabled = true; try { await api(`/api/sellers/${seller._id}/sync`, {method: "POST"}); await refreshAll(); } catch (e) { alert(e.message); } finally { $("#sync").disabled = false; } });
+$("#logout").addEventListener("click", logout);
+$("#login-form").addEventListener("submit", e => { e.preventDefault(); submitAuth(e.target, "/api/auth/login", "#login-err"); });
+$("#register-form").addEventListener("submit", e => { e.preventDefault(); submitAuth(e.target, "/api/auth/register", "#register-err"); });
+$("#show-register").addEventListener("click", () => { $("#login-form").hidden = true; $("#register-form").hidden = false; });
+$("#show-login").addEventListener("click", () => { $("#login-form").hidden = false; $("#register-form").hidden = true; });
+$("#seller-form").addEventListener("submit", async e => { e.preventDefault(); await api("/api/sellers", {method: "POST", body: JSON.stringify(Object.fromEntries(new FormData(e.target)))}); e.target.reset(); await refreshAll(); });
+$("#user-form").addEventListener("submit", async e => {
+  e.preventDefault(); $("#user-err").textContent = "";
+  try { await api("/api/users", {method: "POST", body: JSON.stringify(Object.fromEntries(new FormData(e.target)))}); e.target.reset(); loadUsers(); }
+  catch (err) { $("#user-err").textContent = err.message; }
+});
+$("#ai-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, body = {ai_enabled: f.ai_enabled.value === "true"};
+  if (f.gemini_api_key.value.trim()) body.gemini_api_key = f.gemini_api_key.value.trim();
+  await api("/api/org/settings", {method: "PATCH", body: JSON.stringify(body)}); f.gemini_api_key.value = ""; loadSettings();
+});
+$("#ai-remove").addEventListener("click", async () => { await api("/api/org/settings", {method: "PATCH", body: JSON.stringify({gemini_api_key: ""})}); loadSettings(); });
+$("#margin-form").addEventListener("submit", async e => { e.preventDefault(); const v = parseFloat(e.target.min_margin_pct.value); if (!isNaN(v)) { await api("/api/org/settings", {method: "PATCH", body: JSON.stringify({min_margin_pct: v})}); loadSettings(); } });
+
+
+// ---- Calculadora (UC14) ----------------------------------------------------------------------------------
+const MODE = {full: "Full", flex: "Flex", coleta: "Coleta/Agência", proprio: "Envio próprio", desconhecido: "Não informado"};
+const LT = {gold_special: "Clássico", gold_pro: "Premium"};
+const PROFILE_FIELDS = ["listing_type", "shipping_mode", "tax_pct", "ads_pct", "installment_pct", "other_cost_pct", "packaging_cost",
+  "other_cost_fixed", "flex_cost", "full_storage_cost", "shipping_discount_pct", "target_margin_pct"];
+const pct = v => v == null ? "-" : v.toLocaleString("pt-BR", {maximumFractionDigits: 1}) + "%";
+let calcProducts = [];
+async function loadCalc() {
+  const f = $("#calc-form");
+  const profile = await api(`/api/sellers/${seller._id}/cost-profile`);
+  PROFILE_FIELDS.forEach(k => { if (f[k]) f[k].value = profile[k] ?? ""; });
+  calcProducts = await api(`/api/sellers/${seller._id}/products`);
+  $("#calc-product").innerHTML = `<option value="">Simulação livre</option>` + calcProducts.map(p => `<option value="${p._id}">${esc(p.title)}</option>`).join("");
+}
+$("#calc-product").addEventListener("change", e => {
+  const p = calcProducts.find(x => x._id === e.target.value), f = $("#calc-form");
+  if (!p) return;
+  const l = p.listings.find(x => !$("#account").value || x.account_id === $("#account").value) || p.listings[0] || {};
+  f.price.value = l.current_price ?? ""; f.cost_price.value = p.cost_price ?? "";
+  f.weight_g.value = p.weight_g ?? ""; f.dimensions_cm.value = p.dimensions_cm ?? "";
+  if (l.listing_type) f.listing_type.value = l.listing_type;
+  if (["coleta", "full", "flex", "proprio"].includes(l.shipping_mode)) f.shipping_mode.value = l.shipping_mode;
+  if (f.price.value && f.cost_price.value) runCalc();
+});
+function calcBody() {
+  const f = $("#calc-form"), body = {seller_id: seller._id};
+  for (const el of f.elements) {
+    if (!el.name || el.value === "") continue;
+    body[el.name] = ["listing_type", "shipping_mode", "product_id", "dimensions_cm"].includes(el.name) ? el.value
+      : el.name === "weight_g" ? parseInt(el.value) : parseFloat(el.value);
+  }
+  if ($("#account").value) body.account_id = $("#account").value;
+  return body;
+}
+async function runCalc() {
+  $("#calc-err").textContent = "";
+  let r;
+  try { r = await api("/api/calculator", {method: "POST", body: JSON.stringify(calcBody())}); }
+  catch (e) { $("#calc-err").textContent = e.message; return; }
+  const good = r.profit >= 0;
+  const max = Math.max(...r.breakdown.map(b => b.value), 1);
+  const best = r.scenarios.reduce((a, b) => b.profit > a.profit ? b : a);
+  $("#calc-out").innerHTML = `
+    <div class="tiles">
+      ${tile("Lucro por venda", `<span class="${good ? "up" : "down"}">${brl(r.profit)}</span>`, `${LT[r.listing_type]} · ${MODE[r.shipping_mode]}`)}
+      ${tile("Margem líquida", pct(r.margin_pct), `Meta ${pct(r.target_margin_pct)}`)}
+      ${tile("ROI sobre o custo", pct(r.roi_pct), `Markup ${r.markup ? r.markup.toLocaleString("pt-BR") + "x" : "-"}`)}
+      ${tile("Você recebe do marketplace", brl(r.marketplace_payout), "Preço menos comissão, tarifa e frete")}
+    </div>
+    <div class="tiles">
+      ${tile("Preço de equilíbrio", brl(r.break_even_price), "Abaixo disso você paga para vender")}
+      ${tile(`Preço para ${pct(r.target_margin_pct)} de margem`, brl(r.price_for_target), "Mantendo tipo de anúncio e envio")}
+    </div>
+    <div class="card" style="margin-bottom:16px"><h2>Para onde vai cada venda de ${brl(r.price)}</h2><table>
+      ${r.breakdown.map(b => `<tr><td>${esc(b.label)}${b.source === "estimativa" ? ' <span class="tag warn">estimativa</span>' : ""}</td>
+        <td style="width:30%"><div class="hbar" style="width:${100 * b.value / max}%"></div></td><td>${brl(b.value)}</td><td class="muted">${pct(b.pct_of_price)}</td></tr>`).join("")}
+      <tr><td><strong>Lucro</strong></td><td></td><td><strong>${brl(r.profit)}</strong></td><td class="muted">${pct(r.margin_pct)}</td></tr></table></div>
+    <div class="card"><h2>Comparar tipo de anúncio e envio</h2><table><thead><tr><th>Anúncio</th><th>Envio</th><th>Custos</th><th>Lucro</th><th>Margem</th></tr></thead><tbody>
+      ${r.scenarios.map(x => `<tr><td>${x.listing_type_label}</td><td>${x.shipping_mode_label}</td><td>${brl(x.total_costs)}</td>
+        <td class="${x.profit >= 0 ? "" : "down"}">${brl(x.profit)}${x === best ? ' <span class="tag">melhor</span>' : ""}</td><td>${pct(x.margin_pct)}</td></tr>`).join("")}
+    </tbody></table><p class="muted">Frete marcado como estimativa usa a tabela de referência; com conta conectada o valor vem do marketplace. Flex usa o seu custo médio de entrega.</p></div>`;
+}
+$("#calc-form").addEventListener("submit", e => { e.preventDefault(); runCalc(); });
+$("#calc-save").addEventListener("click", async () => {
+  const b = calcBody(), body = {};
+  PROFILE_FIELDS.forEach(k => { if (b[k] !== undefined) body[k] = b[k]; });
+  try { await api(`/api/sellers/${seller._id}/cost-profile`, {method: "PUT", body: JSON.stringify(body)}); $("#calc-err").textContent = "Perfil da loja salvo."; }
+  catch (e) { $("#calc-err").textContent = e.message; }
+});
+
+// ---- Raio-x de anúncios e monitoramento (UC15, UC17) --------------------------------------------------------
+const days = d => d == null ? "-" : d >= 365 ? (d / 365).toLocaleString("pt-BR", {maximumFractionDigits: 1}) + " anos" : d + " dias";
+async function analyzeAd(item) {
+  $("#ad-out").innerHTML = `<div class="card empty">Analisando anúncio...</div>`;
+  let r;
+  try { r = await api("/api/ads/analyze", {method: "POST", body: JSON.stringify({item, account_id: $("#account").value || undefined})}); }
+  catch (e) { $("#ad-out").innerHTML = `<div class="card err">${esc(e.message)}</div>`; return; }
+  const it = r.item, sl = r.sales, q = r.quality, kw = r.keywords;
+  const est = sl.source === "estimativa" ? ' <span class="tag warn">estimativa</span>' : ' <span class="tag">calculado</span>';
+  const kmax = Math.max(1, ...kw.associated.map(k => k.score));
+  $("#ad-out").innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <h2>${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a>` : esc(it.title)}</h2>
+      <div class="row" style="margin:0 0 8px">
+        <span class="tag">${esc(it.item_id)}</span><span class="tag">${esc(it.seller_nickname || "vendedor")}</span>
+        <span class="tag">${MODE[it.shipping_mode] || "-"}</span><span class="tag">${esc(r.listing_type_label || "-")}</span>
+        ${it.official_store ? '<span class="tag">Loja oficial</span>' : ""}${it.catalog_listing ? '<span class="tag">Catálogo</span>' : ""}
+        ${it.free_shipping ? '<span class="tag">Frete grátis</span>' : ""}
+      </div>
+      <div class="row" style="margin:0"><button class="btn" id="ad-track" ${r.tracked ? "disabled" : ""}>${r.tracked ? "Já monitorado" : "Monitorar este anúncio"}</button></div>
+    </div>
+    <div class="tiles">
+      ${tile("Preço", brl(it.price), r.market_position.price_percentile != null ? `Mais caro que ${pct(r.market_position.price_percentile)} dos concorrentes` : "")}
+      ${tile("Vendas por mês" + est, num(sl.monthly_units), `${num(sl.daily_units)} por dia`)}
+      ${tile("Faturamento por mês" + est, brl(sl.monthly_revenue), sl.method === "monitoramento" ? `${sl.tracked_days} dias monitorados` : "Média desde a criação")}
+      ${tile("Faturamento acumulado" + ' <span class="tag warn">estimativa</span>', brl(sl.revenue_total_estimate), `${num(sl.sold_total)} vendidos · anúncio com ${days(sl.age_days)}`)}
+      ${tile("Visitas em 30 dias", num(sl.visits_30d), sl.conversion_pct != null ? `Conversão ${pct(sl.conversion_pct)}` : "")}
+    </div>
+    <p class="muted">${esc(sl.note)}</p>
+    <div class="grid2">
+      <div class="card"><h2>Palavras-chave associadas</h2><table><thead><tr><th>Termo</th><th style="width:30%">Força</th><th>No título</th></tr></thead><tbody>
+        ${kw.associated.map(k => `<tr><td>${esc(k.term)}</td><td><div class="hbar" style="width:${100 * k.score / kmax}%"></div></td><td>${set(k.term, kw.in_title) ? "Sim" : "Não"}</td></tr>`).join("")}
+      </tbody></table>
+      ${kw.missing.length ? `<p><strong>Termos fortes fora do título:</strong> ${kw.missing.map(esc).join(", ")}</p>` : ""}
+      ${kw.search_suggestions.length ? `<p><strong>O que o comprador digita na busca:</strong> ${kw.search_suggestions.map(x => esc(x.term)).join(" · ")}</p>` : ""}</div>
+      <div class="card"><h2>Qualidade do anúncio: ${q.score}/100</h2><table>
+        ${q.checks.map(c => `<tr><td>${c.ok ? "✓" : "✕"} ${esc(c.label)}</td><td class="muted">${esc(c.detail)}</td><td class="muted">${c.weight} pts</td></tr>`).join("")}
+      </table>
+      <h2 style="margin-top:16px">Logística dos concorrentes</h2>
+      ${bars(r.logistics.by_mode, m => `${m.label} (${m.listings} anúncios)`, m => m.sales_share_pct, v => pct(v) + " das vendas")}</div>
+    </div>`;
+  $("#ad-track").addEventListener("click", async e => {
+    e.target.disabled = true;
+    try { await api("/api/ads/tracked", {method: "POST", body: JSON.stringify({item: it.item_id, account_id: $("#account").value || undefined})}); e.target.textContent = "Monitorando"; loadTracked(); }
+    catch (err) { alert(err.message); e.target.disabled = false; }
+  });
+}
+const set = (term, list) => list.includes(term);
+async function loadTracked() {
+  const rows = await api("/api/ads/tracked");
+  $("#tracked").innerHTML = rows.length ? `<thead><tr><th>Anúncio</th><th>Preço</th><th>Variação 30d</th><th>Vendas 7d</th><th>Vendas 30d</th><th>Faturamento 30d</th><th>Envio</th><th></th></tr></thead><tbody>` +
+    rows.map(t => `<tr><td>${esc(t.title)}<div class="muted">${esc(t.item_id)} · ${esc(t.seller || "")} · ${t.snapshots} foto(s)</div></td>
+      <td>${brl(t.price)}</td><td>${t.price_change_30d ? brl(t.price_change_30d) : "-"}</td><td>${t.sales_7d ?? "aguardando"}</td><td>${t.sales_30d ?? "aguardando"}</td>
+      <td>${brl(t.revenue_30d)}</td><td>${MODE[t.shipping_mode] || "-"}</td>
+      <td style="white-space:nowrap"><button class="btn" onclick="openAd('${t.item_id}')">Raio-x</button> <button class="btn" onclick="untrack('${t.item_id}')">Parar</button></td></tr>`).join("") + "</tbody>"
+    : `<tbody><tr><td class="empty">Nenhum anúncio monitorado.</td></tr></tbody>`;
+}
+async function untrack(id) { await api(`/api/ads/tracked/${encodeURIComponent(id)}`, {method: "DELETE"}); loadTracked(); }
+function openAd(id) { document.querySelector('nav button[data-tab=anuncios]').click(); $("#ad-form").item.value = id; analyzeAd(id); }
+$("#ad-form").addEventListener("submit", e => { e.preventDefault(); analyzeAd(e.target.item.value.trim()); });
+
+// ---- Pesquisa de mercado por termo (UC16) -----------------------------------------------------------------
+$("#research-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, qs = new URLSearchParams({q: f.q.value.trim()});
+  if (f.modes.value) qs.set("modes", f.modes.value);
+  if ($("#account").value) qs.set("account_id", $("#account").value);
+  $("#research-out").innerHTML = `<div class="card empty">Pesquisando...</div>`;
+  let m;
+  try { m = await api(`/api/market/research?${qs}`); } catch (err) { $("#research-out").innerHTML = `<div class="card err">${esc(err.message)}</div>`; return; }
+  if (!m.listings) { $("#research-out").innerHTML = `<div class="card empty">Nenhum anúncio encontrado.</div>`; return; }
+  $("#research-out").innerHTML = `
+    <div class="tiles">
+      ${tile("Anúncios analisados", num(m.listings), `${num(m.units_total)} unidades vendidas`)}
+      ${tile('Faturamento acumulado <span class="tag warn">estimativa</span>', brl(m.revenue_total_estimate), "Vendidos x preço atual")}
+      ${tile('Faturamento por mês <span class="tag warn">estimativa</span>', brl(m.monthly_revenue_top_estimate), `Dos ${m.monthly_revenue_top_count} principais anúncios`)}
+      ${tile("Concentração", pct(m.top10_concentration_pct), `10 maiores anúncios · concorrência ${m.competition_level}`)}
+      ${tile("Preço mediano", brl(m.price.median), `${brl(m.price.min)} a ${brl(m.price.max)}`)}
+      ${tile("Anúncios Full / Flex", `${pct(m.full_share_pct)} / ${pct(m.flex_share_pct)}`, `Lojas oficiais ${pct(m.official_store_share_pct)} · Premium ${pct(m.premium_share_pct)}`)}
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Vendedores que mais faturam</h2><table><thead><tr><th>Vendedor</th><th>Anúncios</th><th>Unidades</th><th>Faturamento</th><th>Participação</th></tr></thead><tbody>
+        ${m.top_sellers.map(s => `<tr><td>${esc(s.seller)}${s.official ? ' <span class="tag">oficial</span>' : ""}</td><td>${s.listings}</td><td>${num(s.units)}</td><td>${brl(s.revenue)}</td><td>${pct(s.share_pct)}</td></tr>`).join("")}
+      </tbody></table></div>
+      <div class="card"><h2>Vendas por modalidade de envio</h2>${bars(m.logistics.by_mode, x => `${x.label} (${x.listings})`, x => x.sales_share_pct, v => pct(v))}</div>
+    </div>
+    <div class="card" style="margin-top:16px"><h2>Anúncios</h2><div class="scroll"><table><thead><tr><th>Anúncio</th><th>Preço</th><th>Vendidos</th><th>Fat. acumulado</th><th>Fat./mês</th><th>Envio</th><th>Tipo</th><th></th></tr></thead><tbody>
+      ${m.ads.map(a => `<tr><td>${esc(a.title)}<div class="muted">${esc(a.seller_nickname || a.seller_id)}${a.official_store ? " · oficial" : ""}</div></td>
+        <td>${brl(a.price)}</td><td>${num(a.sold_quantity)}</td><td>${brl(a.revenue_total_estimate)}</td><td>${brl(a.monthly_revenue)}</td>
+        <td>${esc(a.shipping_mode_label)}</td><td>${esc(a.listing_type_label || "-")}</td><td><button class="btn" onclick="openAd('${a.item_id}')">Raio-x</button></td></tr>`).join("")}
+    </tbody></table></div><p class="muted">${esc(m.note)} Faturamento por mês aparece para os principais anúncios, usando a data de criação.</p></div>`;
+});
+
+token = store.get("mai_token");
+if (token) start().catch(logout); else logout();
+</script>
+</body>
+</html>
