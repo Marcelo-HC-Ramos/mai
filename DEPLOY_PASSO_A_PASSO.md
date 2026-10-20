@@ -1,7 +1,7 @@
-# 🚀 Deployment MAI - Guia Passo-a-Passo (ramosys.com.br)
+# 🚀 Deployment MAI - Guia Passo-a-Passo (mai.ramosys.com.br)
 
 **IP do servidor:** `179.110.102.40`  
-**Domínio:** `ramosys.com.br`
+**Domínio:** `mai.ramosys.com.br`
 
 ---
 
@@ -171,7 +171,7 @@ REDIS_PASSWORD=xyz789ABC_redis_password_aqui
 
 **LINHA 4 - MAI_DOMAIN:**
 ```
-MAI_DOMAIN=ramosys.com.br
+MAI_DOMAIN=mai.ramosys.com.br
 ```
 
 (deixar como está - já está certo)
@@ -199,7 +199,7 @@ cat .env | grep MAI_DOMAIN
 
 **Esperado:**
 ```
-MAI_DOMAIN=ramosys.com.br
+MAI_DOMAIN=mai.ramosys.com.br
 ```
 
 ---
@@ -272,7 +272,7 @@ sudo apt-get install -y nginx
 ### Passo 7.2: Criar configuração
 
 ```bash
-sudo nano /etc/nginx/sites-available/ramosys.com.br
+sudo nano /etc/nginx/sites-available/mai.ramosys.com.br
 ```
 
 Copie e cole este conteúdo:
@@ -284,17 +284,17 @@ upstream mai_app {
 
 server {
     listen 80;
-    server_name ramosys.com.br;
+    server_name mai.ramosys.com.br;
     
     return 301 https://$server_name$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name ramosys.com.br;
+    server_name mai.ramosys.com.br;
     
-    ssl_certificate /etc/letsencrypt/live/ramosys.com.br/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/ramosys.com.br/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/mai.ramosys.com.br/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mai.ramosys.com.br/privkey.pem;
     
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
@@ -315,7 +315,7 @@ server {
 ### Passo 7.3: Ativar site
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/ramosys.com.br /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/mai.ramosys.com.br /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```
@@ -339,7 +339,7 @@ sudo apt-get install -y certbot python3-certbot-nginx
 ### Passo 8.2: Gerar certificado
 
 ```bash
-sudo certbot certonly --standalone -d ramosys.com.br
+sudo certbot certonly --standalone -d mai.ramosys.com.br
 ```
 
 Você vai ver perguntas:
@@ -350,7 +350,7 @@ Você vai ver perguntas:
 **Esperado:**
 ```
 Successfully received certificate.
-Certificate is saved at: /etc/letsencrypt/live/ramosys.com.br/fullchain.pem
+Certificate is saved at: /etc/letsencrypt/live/mai.ramosys.com.br/fullchain.pem
 ```
 
 ### Passo 8.3: Auto-renovação
@@ -379,7 +379,7 @@ Clique em **Add record**
 
 Preencha:
 - **Type:** A
-- **Name:** ramosys
+- **Name:** mai
 - **IPv4 address:** 179.110.102.40
 - **TTL:** Auto
 - **Proxy status:** **Proxied** (nuvem laranja 🟠)
@@ -406,7 +406,7 @@ DNS pode levar 2-10 minutos. Enquanto aguarda, teste com IP direto.
 curl -k -I https://179.110.102.40
 
 # Teste 2: Com domínio (após DNS propagar)
-curl -I https://ramosys.com.br
+curl -I https://mai.ramosys.com.br
 ```
 
 **Esperado:**
@@ -416,7 +416,7 @@ HTTP/2 200
 
 ### Passo 10.3: Abrir no navegador
 
-Abra: https://ramosys.com.br
+Abra: https://mai.ramosys.com.br
 
 **Esperado:** Você vê o dashboard MAI
 
@@ -466,7 +466,7 @@ docker exec mai-mongo mongosh -u mairoot -p $MONGO_PASSWORD \
 
 ## ✅ SUCESSO!
 
-Seu MAI está rodando em **https://ramosys.com.br**! 🎉
+Seu MAI está rodando em **https://mai.ramosys.com.br**! 🎉
 
 ### Próximos passos:
 1. **Testar funcionalidades** (Calculadora, Anúncios, Pesquisa)
@@ -494,7 +494,7 @@ grep MONGO_PASSWORD .env
 Aguarde Let's Encrypt gerar certificado (pode levar alguns minutos).
 
 ### DNS não resolveu
-Aguarde 10 minutos e tente: `ping ramosys.com.br`
+Aguarde 10 minutos e tente: `ping mai.ramosys.com.br`
 
 ---
 

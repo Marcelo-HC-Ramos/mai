@@ -21,7 +21,7 @@ Siga este checklist passo-a-passo para colocar o MAI em produção.
 1. Acessar dashboard: https://dash.cloudflare.com/c508787e6c2c8fe7985eee004b3ee796/ramosys.com.br
 
 2. **DNS:**
-   - [ ] Adicionar registro A: `ramosys` → `<SEU_IP_YCORN>`
+   - [ ] Adicionar registro A: `mai` → `<SEU_IP_YCORN>`
    - [ ] Deixar como Proxied (nuvem laranja 🟠)
 
 3. **SSL/TLS:**
@@ -78,7 +78,7 @@ nginx -v
 sudo apt-get install -y certbot python3-certbot-nginx
 
 # Gerar certificado
-sudo certbot certonly --standalone -d ramosys.com.br
+sudo certbot certonly --standalone -d mai.ramosys.com.br
 
 # Configurar renovação automática
 sudo systemctl enable certbot.timer
@@ -124,7 +124,7 @@ MONGO_PASSWORD=<sua_senha_mongo>
 REDIS_PASSWORD=<sua_senha_redis>
 
 # Domínio e ambiente
-MAI_DOMAIN=ramosys.com.br
+MAI_DOMAIN=mai.ramosys.com.br
 MAI_ENVIRONMENT=production
 
 # Connector (deixar como demo por enquanto)
@@ -136,7 +136,7 @@ GEMINI_API_KEY=<opcional_sua_chave_gemini>
 # Mercado Livre (deixar vazio por enquanto)
 ML_CLIENT_ID=
 ML_CLIENT_SECRET=
-ML_REDIRECT_URI=https://ramosys.com.br/auth/mercadolivre/callback
+ML_REDIRECT_URI=https://mai.ramosys.com.br/auth/mercadolivre/callback
 ```
 
 ### Iniciar containers
@@ -162,7 +162,7 @@ curl http://localhost:8000
 ## ✅ Fase 5: Configurar Nginx (Reverse Proxy)
 
 ```bash
-sudo nano /etc/nginx/sites-available/ramosys.com.br
+sudo nano /etc/nginx/sites-available/mai.ramosys.com.br
 ```
 
 Cole este conteúdo:
@@ -174,7 +174,7 @@ upstream mai_app {
 
 server {
     listen 80;
-    server_name ramosys.com.br;
+    server_name mai.ramosys.com.br;
     
     # Redirecionar HTTP para HTTPS
     return 301 https://$server_name$request_uri;
@@ -182,11 +182,11 @@ server {
 
 server {
     listen 443 ssl http2;
-    server_name ramosys.com.br;
+    server_name mai.ramosys.com.br;
     
     # Certificado SSL (Let's Encrypt)
-    ssl_certificate /etc/letsencrypt/live/ramosys.com.br/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/ramosys.com.br/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/mai.ramosys.com.br/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mai.ramosys.com.br/privkey.pem;
     
     # Configurações SSL recomendadas
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -213,7 +213,7 @@ server {
 Salvar e ativar:
 
 ```bash
-sudo ln -sf /etc/nginx/sites-available/ramosys.com.br /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/mai.ramosys.com.br /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```
@@ -234,14 +234,14 @@ docker exec mai-api curl -f http://localhost:8000
 
 ```bash
 # Do seu computador
-curl -I https://ramosys.com.br
+curl -I https://mai.ramosys.com.br
 # Deve retornar HTTP/2 200
 # Verifique headers SSL
 ```
 
 ### Teste 3: Dashboard
 
-1. Abrir https://ramosys.com.br no navegador
+1. Abrir https://mai.ramosys.com.br no navegador
 2. Fazer login com:
    - Email: `demo@mai.local`
    - Senha: `demo12345`
@@ -254,7 +254,7 @@ curl -I https://ramosys.com.br
 ### Teste 4: API
 
 ```bash
-curl -X POST https://ramosys.com.br/api/auth/login \
+curl -X POST https://mai.ramosys.com.br/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"demo@mai.local","password":"demo12345"}'
 # Deve retornar token
@@ -331,7 +331,7 @@ Quando quiser usar a conta real do Mercado Livre:
    MAI_CONNECTOR=mercadolivre
    ML_CLIENT_ID=seu_client_id
    ML_CLIENT_SECRET=seu_client_secret
-   ML_REDIRECT_URI=https://ramosys.com.br/auth/mercadolivre/callback
+   ML_REDIRECT_URI=https://mai.ramosys.com.br/auth/mercadolivre/callback
    ```
 4. Reiniciar:
    ```bash

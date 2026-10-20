@@ -1,4 +1,4 @@
-# Configuração Cloudflare para ramosys.com.br
+# Configuração Cloudflare para mai.ramosys.com.br
 
 Guia passo-a-passo para configurar seu domínio no Cloudflare com reverse proxy seguro.
 
@@ -22,9 +22,9 @@ No Cloudflare DNS:
 
 | Type | Name          | IPv4          | TTL  | Proxy         |
 |------|---------------|---------------|------|---------------|
-| A    | ramosys       | 192.0.2.123   | Auto | Proxied (🟠) |
+| A    | mai           | 192.0.2.123   | Auto | Proxied (🟠) |
 
-O nome `ramosys` (sem .com.br) representa a raiz `ramosys.com.br`.
+O nome `mai` cria o subdomínio `mai.ramosys.com.br`.
 
 **⚠️ Importante:** Clique no ícone de nuvem para deixar **Proxied** (🟠 laranja), não DNS only (🔒 cinza).
 
@@ -54,7 +54,7 @@ Full (Strict)
 apt-get install -y certbot python3-certbot-nginx
 
 # Gerar certificado
-sudo certbot certonly --standalone -d ramosys.com.br
+sudo certbot certonly --standalone -d mai.ramosys.com.br
 
 # Renovação automática
 sudo systemctl enable certbot.timer
@@ -73,7 +73,7 @@ sudo systemctl start certbot.timer
 #### Rule 1: Cache Static Assets
 
 ```
-URL: https://ramosys.com.br/static/*
+URL: https://mai.ramosys.com.br/static/*
 Action: Cache Level = Cache Everything
 TTL: 30 days
 ```
@@ -81,14 +81,14 @@ TTL: 30 days
 #### Rule 2: Bypass Cache para API
 
 ```
-URL: https://ramosys.com.br/api/*
+URL: https://mai.ramosys.com.br/api/*
 Action: Cache Level = Bypass Cache
 ```
 
 #### Rule 3: Bypass Cache para Dashboard
 
 ```
-URL: https://ramosys.com.br/*
+URL: https://mai.ramosys.com.br/*
 Action: Cache Level = Bypass Cache
 (já que tem dados dinâmicos de login/organização)
 ```
@@ -195,7 +195,7 @@ export default {
 
 ```bash
 # Verificar certificado
-curl -I https://ramosys.com.br
+curl -I https://mai.ramosys.com.br
 
 # Esperar:
 # HTTP/2 200
@@ -207,11 +207,11 @@ curl -I https://ramosys.com.br
 
 ```bash
 # Static assets (deve cachear)
-curl -I https://ramosys.com.br/static/style.css
+curl -I https://mai.ramosys.com.br/static/style.css
 # Procure por: cf-cache-status: HIT ou MISS
 
 # API (não deve cacheiar)
-curl -I https://ramosys.com.br/api/products
+curl -I https://mai.ramosys.com.br/api/products
 # Procure por: cf-cache-status: BYPASS ou DYNAMIC
 ```
 
@@ -219,7 +219,7 @@ curl -I https://ramosys.com.br/api/products
 
 ```bash
 # Conectividade
-curl https://ramosys.com.br -v 2>&1 | grep "X-Powered-By"
+curl https://mai.ramosys.com.br -v 2>&1 | grep "X-Powered-By"
 # Seu servidor vai aparecer
 ```
 
@@ -253,7 +253,7 @@ Se alterar Mercado Livre:
 
 ```bash
 # No Ycorn, após update do .env
-ML_REDIRECT_URI=https://ramosys.com.br/auth/mercadolivre/callback
+ML_REDIRECT_URI=https://mai.ramosys.com.br/auth/mercadolivre/callback
 docker-compose restart api
 ```
 
@@ -282,8 +282,8 @@ docker-compose restart api
 Verifique se IP do servidor está correto:
 ```bash
 # No seu computador
-ping ramosys.com.br
-nslookup ramosys.com.br 1.1.1.1
+ping mai.ramosys.com.br
+nslookup mai.ramosys.com.br 1.1.1.1
 ```
 
 ### "526 Invalid SSL Certificate"
@@ -298,7 +298,7 @@ Seu servidor não tem certificado HTTPS válido. Opções:
 
 Se Ycorn pediu CNAME instead de A record:
 - Use registro CNAME ao invés de A
-- Aponte para: `ramosys.com.br.cdn.cloudflare.net`
+- Aponte para: `mai.ramosys.com.br.cdn.cloudflare.net`
 
 ### Cloudflare retorna 502/504
 

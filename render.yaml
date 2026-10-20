@@ -8,7 +8,7 @@ services:
     autoDeploy: true         # cada push na branch main publica a nova versão
     healthCheckPath: /healthz
     domains:
-      - ramosys.com.br
+      - mai.ramosys.com.br
     envVars:
       - key: MAI_MONGO_URI    # string de conexão do MongoDB Atlas, pedida na criação
         sync: false
@@ -25,7 +25,7 @@ services:
       - key: MAI_SEED_DEMO
         value: "0"
       - key: ML_REDIRECT_URI
-        value: https://ramosys.com.br/auth/mercadolivre/callback
+        value: https://mai.ramosys.com.br/auth/mercadolivre/callback
       - key: ML_CLIENT_ID
         sync: false
       - key: ML_CLIENT_SECRET

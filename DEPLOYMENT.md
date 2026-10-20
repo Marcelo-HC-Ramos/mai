@@ -6,7 +6,7 @@ Guia para servidor próprio com Docker. O caminho mais simples, sem servidor, es
 
 - Acesso SSH ao servidor Ycorn
 - Docker e Docker Compose instalados (ou Python 3.11+)
-- Domínio ramosys.com.br configurado no Cloudflare
+- Domínio mai.ramosys.com.br configurado no Cloudflare
 - Git instalado no servidor
 
 ## 🚀 Opção 1: Deploy com Docker (Recomendado)
@@ -47,7 +47,7 @@ MONGO_PASSWORD=sua_senha_mongo_super_segura_aqui
 REDIS_PASSWORD=sua_senha_redis_super_segura_aqui
 
 # Seu domínio
-MAI_DOMAIN=ramosys.com.br
+MAI_DOMAIN=mai.ramosys.com.br
 
 # Gemini (opcional - deixe vazio para usar fallback)
 GEMINI_API_KEY=sua_chave_gemini_opcional
@@ -132,14 +132,14 @@ A aplicação roda na porta 8000 internamente, mas Cloudflare vai servir via HTT
 ### Com Nginx
 
 ```bash
-cat > /etc/nginx/sites-available/ramosys.com.br << 'EOF'
+cat > /etc/nginx/sites-available/mai.ramosys.com.br << 'EOF'
 upstream mai_app {
     server 127.0.0.1:8000;
 }
 
 server {
     listen 80;
-    server_name ramosys.com.br;
+    server_name mai.ramosys.com.br;
     
     location / {
         proxy_pass http://mai_app;
@@ -152,7 +152,7 @@ server {
 }
 EOF
 
-sudo ln -s /etc/nginx/sites-available/ramosys.com.br /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/mai.ramosys.com.br /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```
@@ -165,11 +165,11 @@ Ver arquivo **cloudflare-setup.md** para instruções completas.
 
 ### Resumo rápido:
 
-1. **DNS:** `ramosys.com.br` → IP do seu Ycorn
+1. **DNS:** `mai.ramosys.com.br` → IP do seu Ycorn
 2. **SSL/TLS:** Full (Strict recomendado se tiver HTTPS local)
 3. **Page Rules:**
-   - Cache Everything: `ramosys.com.br/static/*`
-   - Bypass Cache: `ramosys.com.br/api/*`
+   - Cache Everything: `mai.ramosys.com.br/static/*`
+   - Bypass Cache: `mai.ramosys.com.br/api/*`
 
 ---
 
@@ -178,13 +178,13 @@ Ver arquivo **cloudflare-setup.md** para instruções completas.
 ### 1. Verificar API
 
 ```bash
-curl -I https://ramosys.com.br
+curl -I https://mai.ramosys.com.br
 # Deve retornar 200 OK
 ```
 
 ### 2. Verificar Dashboard
 
-Abra https://ramosys.com.br no navegador, faça login com:
+Abra https://mai.ramosys.com.br no navegador, faça login com:
 - Email: `demo@mai.local`
 - Senha: `demo12345`
 

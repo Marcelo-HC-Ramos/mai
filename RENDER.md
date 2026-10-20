@@ -6,7 +6,7 @@ Caminho recomendado. Você vai usar três sites, todos pelo navegador:
 |---|---|---|
 | MongoDB Atlas | banco de dados | grátis (até 512 MB) |
 | Render | roda o sistema e cuida do HTTPS | cerca de US$ 7/mês (plano Starter) |
-| Cloudflare | aponta ramosys.com.br para o Render | grátis |
+| Cloudflare | aponta mai.ramosys.com.br para o Render | grátis |
 
 Tempo total: uns 30 minutos.
 
@@ -47,24 +47,20 @@ As senhas internas (`MAI_SECRET_KEY` e `MAI_ENCRYPTION_KEY`) são geradas pelo R
 
 ---
 
-## Parte 3: ligar ramosys.com.br no Cloudflare
+## Parte 3: ligar mai.ramosys.com.br no Cloudflare
 
-> Atenção: isso faz **ramosys.com.br** abrir o MAI. Se hoje já existe um site nesse endereço (no Ycorn), ele deixa
-> de aparecer. Para manter o site atual, use um subdomínio como `app.ramosys.com.br`: no Render, em
-> **Settings → Custom Domains**, adicione `app.ramosys.com.br` e, no Cloudflare, use `app` no campo *Name* abaixo.
+O MAI fica num subdomínio, então o site principal ramosys.com.br continua como está.
 
-1. No Render, abra o serviço **mai** → **Settings** → **Custom Domains**. O domínio `ramosys.com.br` já está listado.
+1. No Render, abra o serviço **mai** → **Settings** → **Custom Domains**. O domínio `mai.ramosys.com.br` já está listado.
    Anote o destino que ele mostra (o endereço `mai-xxxx.onrender.com`).
-2. No Cloudflare (https://dash.cloudflare.com → ramosys.com.br → **DNS** → **Records**):
-   - Apague os registros **A** ou **CNAME** com nome `ramosys.com.br` (ou `@`) que apontam para o Ycorn.
-   - Clique em **Add record**:
-     - Type: **CNAME**
-     - Name: `@`
-     - Target: `mai-xxxx.onrender.com` (o seu, do passo 1)
-     - Proxy status: **DNS only** (nuvem cinza)
+2. No Cloudflare (https://dash.cloudflare.com → ramosys.com.br → **DNS** → **Records**), clique em **Add record**:
+   - Type: **CNAME**
+   - Name: `mai`
+   - Target: `mai-xxxx.onrender.com` (o seu, do passo 1)
+   - Proxy status: **DNS only** (nuvem cinza)
    - **Save**.
 3. Volte ao Render e clique em **Verify** ao lado do domínio. Em alguns minutos aparece **Certificate Issued**.
-4. Abra **https://ramosys.com.br**. Pronto.
+4. Abra **https://mai.ramosys.com.br**. Pronto.
 5. (Opcional) Depois que o certificado sair, você pode ligar a nuvem laranja (**Proxied**) no Cloudflare. Se fizer
    isso, em **SSL/TLS → Overview** escolha **Full (strict)**.
 
@@ -72,7 +68,7 @@ As senhas internas (`MAI_SECRET_KEY` e `MAI_ENCRYPTION_KEY`) são geradas pelo R
 
 ## Parte 4: primeiro acesso
 
-1. Em https://ramosys.com.br clique em **Criar conta da empresa** e cadastre a sua empresa. Você vira o dono da conta.
+1. Em https://mai.ramosys.com.br clique em **Criar conta da empresa** e cadastre a sua empresa. Você vira o dono da conta.
 2. Seus clientes fazem o mesmo: cada um cria a conta da própria empresa e só enxerga os próprios dados.
 
 Enquanto o Mercado Livre não estiver conectado (Parte 6), o sistema usa dados de demonstração.
@@ -93,7 +89,7 @@ As tarefas automáticas (monitoramento de anúncios às 05:30, varredura diária
 
 **Mercado Livre**
 1. Crie o aplicativo em https://developers.mercadolivre.com.br/devcenter.
-   URL de redirecionamento: `https://ramosys.com.br/auth/mercadolivre/callback`
+   URL de redirecionamento: `https://mai.ramosys.com.br/auth/mercadolivre/callback`
 2. No Render, serviço **mai** → **Environment**, preencha `ML_CLIENT_ID` e `ML_CLIENT_SECRET` e troque
    `MAI_CONNECTOR` de `demo` para `mercadolivre`. Clique em **Save Changes** (o Render publica de novo).
 
@@ -108,6 +104,6 @@ As tarefas automáticas (monitoramento de anúncios às 05:30, varredura diária
 | O que aparece | O que fazer |
 |---|---|
 | Publicação falha com erro de conexão ao banco | Confira a senha na `MAI_MONGO_URI` e o `0.0.0.0/0` em Network Access no Atlas |
-| ramosys.com.br não abre | Espere até 30 min pelo DNS; confira o CNAME e se a nuvem está cinza até o certificado sair |
+| mai.ramosys.com.br não abre | Espere até 30 min pelo DNS; confira o CNAME e se a nuvem está cinza até o certificado sair |
 | Erro de certificado com nuvem laranja | Cloudflare → SSL/TLS → **Full (strict)** |
 | Todo mundo foi deslogado | Normal após mudar `MAI_SECRET_KEY`; basta entrar de novo |
