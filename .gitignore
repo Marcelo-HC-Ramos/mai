@@ -1,4 +1,5 @@
-__pycache__/
-.pytest_cache/
 .env
 backups/
+.dev.vars
+.wrangler/
+node_modules/
