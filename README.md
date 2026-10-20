@@ -127,4 +127,4 @@ Agente, relatório e painel não mudam.
 - O autocompletar de busca usado no raio-x é um endpoint público não documentado do Mercado Livre e pode mudar.
 - O conector do Mercado Livre segue a documentação oficial, mas ainda não foi testado contra uma conta real.
 - Recuperação de senha por e-mail, cobrança/planos e limite de uso por empresa ainda não existem.
-- A versão anterior em Python/MongoDB está na tag `python-v1` do repositório.
+- A versão anterior em Python/MongoDB está no ramo `python-v1` do repositório.
