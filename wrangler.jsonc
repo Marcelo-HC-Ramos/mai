@@ -1,0 +1,30 @@
+// Configuração do MAI na Cloudflare. O "npm run configurar" preenche o database_id sozinho.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mai",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/auth/*", "/webhooks/*", "/internal/*", "/healthz"]
+  },
+  "routes": [{ "pattern": "mai.ramosys.com.br", "custom_domain": true }],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "mai", "database_id": "PREENCHIDO_PELO_CONFIGURAR", "migrations_dir": "migrations" }
+  ],
+  // tarefas agendadas (sincronização, monitoramento de anúncios e varredura diária), a cada 15 minutos
+  "triggers": { "crons": ["*/15 * * * *"] },
+  "observability": { "enabled": true },
+  "vars": {
+    "ML_REDIRECT_URI": "https://mai.ramosys.com.br/auth/mercadolivre/callback",
+    "ML_SITE_ID": "MLB",
+    "GEMINI_MODEL": "gemini-2.5-flash",
+    "MIN_MARGIN_PCT": "15",
+    "STOCK_ALERT_DAYS": "15",
+    "SESSION_HOURS": "12",
+    "PBKDF2_ITERATIONS": "15000"
+  }
+  // Segredos (npm run configurar cria os dois primeiros): MAI_SECRET_KEY, MAI_ENCRYPTION_KEY,
+  // e opcionais ML_CLIENT_ID, ML_CLIENT_SECRET, GEMINI_API_KEY
+}

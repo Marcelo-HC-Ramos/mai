@@ -1,0 +1,26 @@
+{
+  "name": "mai",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MAI: inteligência de mercado para vendedores do Mercado Livre, na Cloudflare (Workers + D1)",
+  "scripts": {
+    "configurar": "node scripts/configurar.mjs",
+    "publicar": "node scripts/publicar.mjs",
+    "verificar": "node scripts/verificar.mjs",
+    "logs": "wrangler tail mai --format pretty",
+    "dev": "wrangler d1 migrations apply mai --local && wrangler dev",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.4.5",
+    "@cloudflare/workers-types": "^5.20261019.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.12",
+    "wrangler": "^4.151.2"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3"
+  }
+}

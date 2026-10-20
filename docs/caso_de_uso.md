@@ -3,7 +3,7 @@
 Este documento detalha o comportamento do sistema MAI a partir dos casos de uso. Ele complementa o
 "Documento de Especificação de Requisitos e Arquitetura de Software" do projeto (UC01 a UC05, RF01 a RF08,
 RNF01 a RNF04) e acrescenta os casos de uso necessários para cobrir os cinco critérios de análise de mercado
-pedidos pelo cliente. Cada caso de uso termina com a rastreabilidade para o código em `mai/`.
+pedidos pelo cliente. Cada caso de uso termina com a rastreabilidade para o código em `src/`.
 
 ## 1. Atores
 
@@ -13,9 +13,9 @@ pedidos pelo cliente. Cada caso de uso termina com a rastreabilidade para o cód
 | Dono / Administrador | Usuário da empresa que cadastra lojas, conecta contas, convida usuários e configura a IA. |
 | Vendedor (Analista) | Usuário da empresa que consulta relatórios e painéis, roda análises e responde perguntas. |
 | Analista de E-commerce | Usa relatórios históricos para decisões de catálogo, margem e compras. |
-| Agente MAI | Processo automatizado (Python) que varre o mercado, analisa e grava os resultados no MongoDB. |
+| Agente MAI | Processo automatizado (Cloudflare Worker) que varre o mercado, analisa e grava os resultados no banco D1. |
 | Serviço de IA | API Gemini (camada gratuita do Google AI Studio), usada para classificar avaliações, sugerir respostas e resumir o relatório. Opcional. |
-| Agendador | Celery Beat ou cron, dispara varreduras periódicas sem intervenção humana. |
+| Agendador | Cron Trigger da Cloudflare (a cada 15 minutos), dispara sincronizações, fotos e varreduras sem intervenção humana. |
 | Marketplace | Sistema externo (Mercado Livre na primeira versão) acessado via API oficial e webhooks. |
 
 ## 2. Diagrama de casos de uso
@@ -93,7 +93,7 @@ pedidos pelo cliente. Cada caso de uso termina com a rastreabilidade para o cód
 **Exceções:** 2e. E-mail já cadastrado ou senha curta: mensagem de erro e nada é criado. 4e. Sessão expirada: o
 sistema volta à tela de login.
 
-**Rastreabilidade:** `mai/auth.py`, `mai/api.py` (`/api/auth/register`, `/api/auth/login`, `/api/me`).
+**Rastreabilidade:** `src/auth.ts`, `src/api.ts` (`/api/auth/register`, `/api/auth/login`, `/api/me`).
 
 ---
 
@@ -108,7 +108,7 @@ sistema volta à tela de login.
    chave própria do Gemini (guardada criptografada, RN04) ou desligar a IA.
 4. Em "Contas", cria novas lojas da empresa.
 
-**Rastreabilidade:** `mai/api.py` (`/api/users`, `/api/org/settings`, `/api/sellers`).
+**Rastreabilidade:** `src/api.ts` (`/api/users`, `/api/org/settings`, `/api/sellers`).
 
 ---
 
@@ -141,8 +141,8 @@ perguntas daquela conta importados.
 - 5e. A conta já está ligada a outra empresa (RN08): nada é gravado e aparece "Esta conta já está ligada a outra empresa".
 - 4e. `state` inválido ou expirado: a autorização é descartada.
 
-**Rastreabilidade:** `mai/api.py` (`/api/sellers/{id}/accounts/...`, `/auth/mercadolivre/callback`),
-`mai/services.py` (`connect_account`, `disconnect_account`), `mai/security.py`, `mai/sync.py`.
+**Rastreabilidade:** `src/api.ts` (`/api/sellers/{id}/accounts/...`, `/auth/mercadolivre/callback`),
+`src/services.ts` (`connectAccount`, `disconnectAccount`), `src/security.ts`, `src/sync.ts`.
 
 ---
 
@@ -160,7 +160,7 @@ perguntas daquela conta importados.
 5. O agente gera as recomendações textuais (preço, título/SEO, mídia, pontos fortes a destacar).
 6. Se a empresa tem IA disponível (RN10), o agente pede ao Gemini um resumo executivo, uma sugestão de título e três
    argumentos de venda baseados nas falhas dos concorrentes.
-7. O agente grava o snapshot no MongoDB com data de captura, conta usada, empresa e a origem de cada dado (RN01).
+7. O agente grava o snapshot no banco D1 com data de captura, conta usada, empresa e a origem de cada dado (RN01).
 8. O sistema avisa a interface que o relatório está pronto.
 
 **Fluxos alternativos**
@@ -174,7 +174,7 @@ perguntas daquela conta importados.
 - 3e. Limite de requisições atingido: o conector espera e tenta de novo (RN05); depois de 5 falhas a varredura
   termina com status `FAILED` e o motivo.
 
-**Rastreabilidade:** `mai/agent.py` (`MarketAgent.analyze_product`), `mai/tasks.py`.
+**Rastreabilidade:** `src/agent.ts` (`MarketAgent.analyzeProduct`), `src/scheduler.ts`, `src/internal.ts`.
 
 ---
 
@@ -206,8 +206,8 @@ lista dos 10 concorrentes mais relevantes (com a modalidade de envio de cada um)
 - 5a. O líder de vendas está no Full (50% ou mais dos 10 mais vendidos) e o vendedor não: o MAI recomenda avaliar o
   Full. Mesma regra para o Flex. Se o Full cobra mais caro que o mercado, a recomendação informa a diferença.
 
-**Rastreabilidade:** `mai/analysis/pricing.py` (`competitor_stats`, `remove_outliers_iqr`),
-`mai/analysis/logistics.py` (`logistics_insights`, `filter_by_modes`), `mai/analysis/recommendations.py`.
+**Rastreabilidade:** `src/analysis/pricing.ts` (`competitorStats`, `removeOutliersIqr`),
+`src/analysis/logistics.ts` (`logisticsInsights`, `filterByModes`), `src/analysis/recommendations.ts`.
 
 ---
 
@@ -228,7 +228,7 @@ lista dos 10 concorrentes mais relevantes (com a modalidade de envio de cada um)
 vendedor conectar uma fonte de volume (por exemplo, planilha de Google Keyword Planner ou relatório de Mercado Ads),
 o volume é mostrado com `source = "vendedor"`.
 
-**Rastreabilidade:** `mai/analysis/keywords.py`.
+**Rastreabilidade:** `src/analysis/keywords.ts`.
 
 ---
 
@@ -239,7 +239,7 @@ o volume é mostrado com `source = "vendedor"`.
 **Fluxo principal**
 1. O agente procura dados de dispositivo fornecidos pelo vendedor (relatório de tráfego importado, por exemplo
    do Google Analytics da loja própria ou do Mercado Ads). Se houver, usa com `source = "vendedor"`.
-2. Sem dados do vendedor, usa a referência de mercado por categoria configurada em `mai/analysis/devices.py`, com
+2. Sem dados do vendedor, usa a referência de mercado por categoria configurada em `src/analysis/devices.ts`, com
    `source = "estimativa"` e o nome da referência.
 3. Gera a recomendação de mídia correspondente (por exemplo, foto principal legível em tela pequena quando o
    celular passa de 60%).
@@ -247,7 +247,7 @@ o volume é mostrado com `source = "vendedor"`.
 **Regra:** a API do Mercado Livre não informa o dispositivo de quem busca. O relatório sempre mostra de onde veio o
 número, e a tabela de referência pode ser atualizada pelo administrador.
 
-**Rastreabilidade:** `mai/analysis/devices.py`.
+**Rastreabilidade:** `src/analysis/devices.ts`.
 
 ---
 
@@ -268,7 +268,7 @@ número, e a tabela de referência pode ser atualizada pelo administrador.
 **Fluxo alternativo**
 - 2a. Menos de 5 avaliações ruins: o relatório mostra o resultado com aviso de amostra pequena.
 
-**Rastreabilidade:** `mai/analysis/reviews.py`.
+**Rastreabilidade:** `src/analysis/reviews.ts`.
 
 ---
 
@@ -296,7 +296,7 @@ número, e a tabela de referência pode ser atualizada pelo administrador.
 
 **Saída extra:** o detalhamento de custos no preço recomendado (`pricing.cost_breakdown`), mostrado no relatório.
 
-**Rastreabilidade:** `mai/analysis/pricing.py` (`recommend_price`), `mai/costs.py` (`as_fee_fn`).
+**Rastreabilidade:** `src/analysis/pricing.ts` (`recommendPrice`), `src/costs.ts` (`asFeeFn`).
 
 ---
 
@@ -315,7 +315,7 @@ número, e a tabela de referência pode ser atualizada pelo administrador.
 **Fluxo alternativo**
 - 2a. Não há snapshot: o sistema oferece executar UC02.
 
-**Rastreabilidade:** `mai/report.py`, rotas `/api/products/{id}/report*`.
+**Rastreabilidade:** `src/report/html.ts`, `src/report/xlsx.ts`, rotas `/api/products/{id}/report*`.
 
 ---
 
@@ -327,13 +327,13 @@ número, e a tabela de referência pode ser atualizada pelo administrador.
 1. O sistema recebe pedidos por webhook ou pela sincronização periódica e grava em `orders`.
 2. O vendedor abre o dashboard e escolhe o período (hoje, 7, 15, 30 dias, mês atual, ano atual).
 3. O vendedor pode filtrar por uma conta específica ou ver todas as contas da loja juntas.
-4. O sistema agrega no MongoDB e mostra: faturamento bruto, faturamento líquido (após comissão e frete pago),
+4. O sistema agrega no banco D1 (somas em SQL) e mostra: faturamento bruto, faturamento líquido (após comissão e frete pago),
    quantidade de pedidos, ticket médio, unidades vendidas, **total vendido no mês atual** comparado ao mês anterior,
    faturamento por conta e por marketplace, curva diária e os 5 produtos mais vendidos.
 
-**Regra:** responder em menos de 800 ms para até 90 dias (RNF03), com os índices definidos em `mai/db.py`.
+**Regra:** responder em menos de 800 ms para até 90 dias (RNF03), com os índices definidos em `migrations/0001_init.sql`.
 
-**Rastreabilidade:** `mai/dashboard.py` (`sales_summary`).
+**Rastreabilidade:** `src/dashboard.ts` (`salesSummary`).
 
 ---
 
@@ -353,7 +353,7 @@ número, e a tabela de referência pode ser atualizada pelo administrador.
 **Exceção**
 - 4e. O marketplace recusa a resposta: a pergunta continua `UNANSWERED` e o erro aparece para o vendedor.
 
-**Rastreabilidade:** `mai/dashboard.py` (`questions_summary`), `mai/api.py` (`/api/questions/{id}/answer`).
+**Rastreabilidade:** `src/dashboard.ts` (`questionsSummary`), `src/api.ts` (`/api/questions/{id}/answer`).
 
 ---
 
@@ -367,7 +367,7 @@ número, e a tabela de referência pode ser atualizada pelo administrador.
    (estoque ÷ média diária de vendas dos últimos 30 dias).
 3. Produtos com cobertura abaixo de 15 dias recebem alerta de reposição.
 
-**Rastreabilidade:** `mai/dashboard.py` (`stock_summary`).
+**Rastreabilidade:** `src/dashboard.ts` (`stockSummary`).
 
 ---
 
@@ -407,7 +407,7 @@ número, e a tabela de referência pode ser atualizada pelo administrador.
 - 3a. A API do marketplace falha: usa 11,5% (Clássico) / 16,5% (Premium) e a tabela de frete de referência, marcadas
   como `estimativa`.
 
-**Rastreabilidade:** `mai/costs.py` (`CostCalculator`), `mai/api.py` (`/api/calculator`,
+**Rastreabilidade:** `src/costs.ts` (`CostCalculator`), `src/api.ts` (`/api/calculator`,
 `/api/sellers/{id}/cost-profile`), aba Calculadora do painel.
 
 ---
@@ -438,8 +438,8 @@ meu anúncio?"
 - 2a. Anúncio inexistente ou inacessível: o sistema informa que não conseguiu ler o anúncio.
 - 3a. Anúncio monitorado com histórico suficiente: as vendas do período passam a `calculado`.
 
-**Rastreabilidade:** `mai/analysis/ads.py` (`parse_item_id`, `estimate_sales`, `quality_score`, `analyze_ad`),
-`mai/ad_service.py` (`analyze_ad_for_org`), `mai/api.py` (`/api/ads/analyze`, `/api/ads/recent`).
+**Rastreabilidade:** `src/analysis/ads.ts` (`parseItemId`, `estimateSales`, `qualityScore`, `analyzeAd`),
+`src/ad_service.ts` (`analyzeAdForOrg`), `src/api.ts` (`/api/ads/analyze`, `/api/ads/recent`).
 
 ---
 
@@ -457,8 +457,8 @@ meu anúncio?"
    faixa de preços, participação de Full, Flex, lojas oficiais, Premium e frete grátis, vendedores que mais faturam
    e a tabela de anúncios, cada um com atalho para o raio-x (UC15).
 
-**Rastreabilidade:** `mai/analysis/ads.py` (`market_overview`), `mai/ad_service.py` (`market_research`),
-`mai/api.py` (`/api/market/research`).
+**Rastreabilidade:** `src/analysis/ads.ts` (`marketOverview`), `src/ad_service.ts` (`marketResearch`),
+`src/api.ts` (`/api/market/research`).
 
 ---
 
@@ -477,8 +477,8 @@ meu anúncio?"
 **Regras:** o monitoramento pertence à empresa (RN07): uma empresa não vê o que a outra monitora. A mesma foto
 diária de um anúncio serve a todas as empresas que o monitoram.
 
-**Rastreabilidade:** `mai/ad_service.py` (`track`, `untrack`, `tracked_list`, `snapshot_all_tracked`),
-`mai/tasks.py` (`snapshot_tracked_ads`), `mai/api.py` (`/api/ads/tracked`).
+**Rastreabilidade:** `src/ad_service.ts` (`track`, `untrack`, `trackedList`, `snapshotItems`),
+`src/scheduler.ts` (`dueJobs`), `src/index.ts` (`scheduled`), `src/api.ts` (`/api/ads/tracked`).
 
 ---
 
@@ -486,25 +486,25 @@ diária de um anúncio serve a todas as empresas que o monitoram.
 
 | Requisito | Casos de uso | Módulo |
 |---|---|---|
-| RF01 Conexão OAuth (várias contas) | UC01 | `api.py`, `services.py`, `security.py`, `connectors/` |
-| Novo: Multiempresa e usuários | UC12, UC13 | `auth.py`, `api.py` |
+| RF01 Conexão OAuth (várias contas) | UC01 | `api.ts`, `services.ts`, `security.ts`, `connectors/` |
+| Novo: Multiempresa e usuários | UC12, UC13 | `auth.ts`, `api.ts` |
 | Novo: IA generativa gratuita (Gemini) | UC02, UC05, UC09 | `ai/` |
-| RF02 Preços de concorrentes | UC02, UC06 | `analysis/pricing.py` |
-| RF03 Termos de busca | UC07 | `analysis/keywords.py` |
-| RF04 Celular x computador | UC08 | `analysis/devices.py` |
-| RF05 Recomendações | UC02, UC10 | `analysis/recommendations.py` |
-| RF06 Pedidos e faturamento | UC04 | `dashboard.py` |
-| RF07 Perguntas | UC05 | `dashboard.py`, `api.py` |
-| RF08 Exportação | UC03 | `report.py` |
-| Novo: Avaliações ruins | UC09 | `analysis/reviews.py` |
-| Novo: Melhor preço | UC10 | `analysis/pricing.py` |
-| Novo: Estoque | UC11 | `dashboard.py` |
-| Novo: Calculadora de custos (estilo Zinx) | UC14, UC10 | `costs.py` |
-| Novo: Full x Flex como parâmetro | UC06, UC10, UC16 | `analysis/logistics.py`, `connectors/` |
-| Novo: Raio-x de anúncio (estilo Genius Pro) | UC15 | `analysis/ads.py`, `ad_service.py` |
-| Novo: Pesquisa de mercado e faturamento | UC16 | `analysis/ads.py`, `ad_service.py` |
-| Novo: Monitoramento de anúncios | UC17 | `ad_service.py`, `tasks.py` |
-| RNF01 Rate limit/backoff | RN05 | `connectors/base.py` |
-| RNF02 AES-256-GCM | RN04 | `security.py` |
-| RNF03 Dashboard < 800 ms | UC04 | `db.py` (índices) |
-| RNF04 Workers isolados | UC02 | `tasks.py` |
+| RF02 Preços de concorrentes | UC02, UC06 | `analysis/pricing.ts` |
+| RF03 Termos de busca | UC07 | `analysis/keywords.ts` |
+| RF04 Celular x computador | UC08 | `analysis/devices.ts` |
+| RF05 Recomendações | UC02, UC10 | `analysis/recommendations.ts` |
+| RF06 Pedidos e faturamento | UC04 | `dashboard.ts` |
+| RF07 Perguntas | UC05 | `dashboard.ts`, `api.ts` |
+| RF08 Exportação | UC03 | `report/html.ts`, `report/xlsx.ts` |
+| Novo: Avaliações ruins | UC09 | `analysis/reviews.ts` |
+| Novo: Melhor preço | UC10 | `analysis/pricing.ts` |
+| Novo: Estoque | UC11 | `dashboard.ts` |
+| Novo: Calculadora de custos (estilo Zinx) | UC14, UC10 | `costs.ts` |
+| Novo: Full x Flex como parâmetro | UC06, UC10, UC16 | `analysis/logistics.ts`, `connectors/` |
+| Novo: Raio-x de anúncio (estilo Genius Pro) | UC15 | `analysis/ads.ts`, `ad_service.ts` |
+| Novo: Pesquisa de mercado e faturamento | UC16 | `analysis/ads.ts`, `ad_service.ts` |
+| Novo: Monitoramento de anúncios | UC17 | `ad_service.ts`, `scheduler.ts` |
+| RNF01 Rate limit/backoff | RN05 | `connectors/base.ts` |
+| RNF02 AES-256-GCM | RN04 | `security.ts` |
+| RNF03 Dashboard < 800 ms | UC04 | `migrations/0001_init.sql` (índices) |
+| RNF04 Workers isolados | UC02 | `internal.ts`, `scheduler.ts` |
