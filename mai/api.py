@@ -32,11 +32,17 @@ WEB = Path(__file__).parent / "web"
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    """MAI_SEED_DEMO=1 cria a empresa de demonstração quando o banco está vazio."""
+    """MAI_SEED_DEMO=1 cria a empresa de demonstração quando o banco está vazio; MAI_SCHEDULER=1 liga o agendador."""
     if os.environ.get("MAI_SEED_DEMO") == "1" and not get_db().organizations.count_documents({}):
         from .cli import seed_demo
         seed_demo(get_db())
+    stop = None
+    if os.environ.get("MAI_SCHEDULER") == "1":
+        from . import scheduler
+        stop = scheduler.start(get_db)
     yield
+    if stop:
+        stop.set()
 
 
 app = FastAPI(title="MAI: Inteligência de Mercado", version="0.2.0", lifespan=lifespan)
@@ -84,6 +90,12 @@ def owned(collection: str, doc_id: str, user: dict) -> dict:
 
 def public_user(u: dict) -> dict:
     return {k: u.get(k) for k in ("_id", "name", "email", "role", "active", "created_at")}
+
+
+@app.get("/healthz", include_in_schema=False)
+def healthz():
+    get_db().command("ping")
+    return {"ok": True}
 
 
 @app.get("/", include_in_schema=False)

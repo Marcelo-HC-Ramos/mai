@@ -1,0 +1,34 @@
+# Blueprint do Render: cria o serviço do MAI com um clique (veja RENDER.md).
+services:
+  - type: web
+    name: mai
+    runtime: docker
+    plan: starter            # o plano free "dorme" sem acesso e para as tarefas diárias
+    region: virginia
+    autoDeploy: true         # cada push na branch main publica a nova versão
+    healthCheckPath: /healthz
+    domains:
+      - ramosys.com.br
+    envVars:
+      - key: MAI_MONGO_URI    # string de conexão do MongoDB Atlas, pedida na criação
+        sync: false
+      - key: MAI_MONGO_DB
+        value: mai
+      - key: MAI_SECRET_KEY
+        generateValue: true
+      - key: MAI_ENCRYPTION_KEY # não troque depois: tokens das contas conectadas ficam ilegíveis
+        generateValue: true
+      - key: MAI_SCHEDULER
+        value: "1"
+      - key: MAI_CONNECTOR
+        value: demo
+      - key: MAI_SEED_DEMO
+        value: "0"
+      - key: ML_REDIRECT_URI
+        value: https://ramosys.com.br/auth/mercadolivre/callback
+      - key: ML_CLIENT_ID
+        sync: false
+      - key: ML_CLIENT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

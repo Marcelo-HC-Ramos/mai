@@ -1,6 +1,6 @@
 # Deployment MAI em Ycorn + Cloudflare
 
-Guia passo-a-passo para colocar o MAI em produção em ramosys.com.br.
+Guia para servidor próprio com Docker. O caminho mais simples, sem servidor, está em [RENDER.md](RENDER.md).
 
 ## 📋 Pré-requisitos
 

@@ -71,6 +71,15 @@ minuto é respeitado com `GEMINI_RPM` (padrão 10). O modelo é configurável em
 - **Perguntas:** pendentes com resposta sugerida (envio direto ao marketplace), tempo médio de resposta, temas mais perguntados.
 - **Estoque:** unidades, valor a custo, produtos sem estoque, cobertura em dias e alerta de reposição.
 
+## Colocar no ar (produção)
+
+Caminho recomendado: Render + MongoDB Atlas, só pelo navegador, sem servidor nem Docker. Passo a passo em
+[RENDER.md](RENDER.md). O arquivo `render.yaml` cria o serviço com um clique:
+https://render.com/deploy?repo=https://github.com/Marcelo-HC-Ramos/mai
+
+Com `MAI_SCHEDULER=1` as tarefas diárias rodam dentro da própria API (sem Redis/worker); `GET /healthz` verifica
+o banco. Para servidor próprio com Docker, veja [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Rodar em 1 minuto (sem instalar MongoDB, dados de demonstração)
 
 ```bash
